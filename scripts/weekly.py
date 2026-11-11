@@ -81,6 +81,18 @@ def entry():
     return "\n".join(lines)
 
 
+def record_failure(err):
+    """Failures must be visible in the ledger that every session reads, not only in a chat."""
+    pend = os.environ.get("PENDING_FILE", "/root/.openclaw/workspace/LEDGER_PENDING.md")
+    msg = str(err)[:400].replace("\n", " ")
+    try:
+        with open(pend, "a") as f:
+            f.write("\n%s | continuity weekly push failed | %s<!-- project: path:/root/.openclaw/workspace -->\n" % (
+                datetime.now().strftime("%Y-%m-%d %H:%M"), msg))
+    except Exception:
+        pass
+
+
 def main():
     text = entry()
     print(text)
@@ -95,5 +107,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        record_failure(e)
+        raise
 
